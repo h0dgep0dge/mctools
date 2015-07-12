@@ -3,6 +3,7 @@
   <body>
     <input type="file" id="selector">
     <script src="pako/dist/pako.js"></script>
+    <script src="minecraft-nbt/dist/nbt.js"></script>
     <script>
       function arrayToString(arr) {
         var i, str = '';
@@ -12,10 +13,21 @@
         }
         return decodeURIComponent(str);
       }
-      var b = "H4sIAIseoVUAA/NIzcnJ11Eozy/KSVHkAgAYp1V7DgAAAA=="; // base64 encoded gzip'd "Hello, world!"
-      var dec = atob(b); // Decoded binary
-      var raw = pako.ungzip(dec);
-      console.log(arrayToString(raw));
+
+      var e = document.getElementById('selector');
+      e.addEventListener('change',function(e) {
+        for(var i = 0;i < e.target.files.length;i++) {
+          var f = e.target.files.item(i);
+          var reader = new FileReader();
+          reader.addEventListener('load',function(result) {
+            var r = new Uint8Array(result.target.result);
+            var d = pako.ungzip(r);
+            var r = new nbt.NBTReader(d).read();
+            console.log(r);
+          });
+          reader.readAsArrayBuffer(f);
+        }
+      });
     </script>
   </body>
 </html>
