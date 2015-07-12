@@ -2,9 +2,20 @@
 <html>
   <body>
     <input type="file" id="selector">
-    <script src="pako.js"></script>
+    <script src="pako/dist/pako.js"></script>
     <script>
-      var b = "H4sIAIseoVUAA/NIzcnJ11Eozy/KSVHkAgAYp1V7DgAAAA==";
+      function arrayToString(arr) {
+        var i, str = '';
+
+        for (i = 0; i < arr.length; i++) {
+          str += '%' + ('0' + arr[i].toString(16)).slice(-2);
+        }
+        return decodeURIComponent(str);
+      }
+      var b = "H4sIAIseoVUAA/NIzcnJ11Eozy/KSVHkAgAYp1V7DgAAAA=="; // base64 encoded gzip'd "Hello, world!"
+      var dec = atob(b); // Decoded binary
+      var raw = pako.ungzip(dec);
+      console.log(arrayToString(raw));
     </script>
   </body>
 </html>
