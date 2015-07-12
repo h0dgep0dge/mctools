@@ -1,6 +1,9 @@
 [submodule "pako"]
 	path = pako
 	url = https://github.com/nodeca/pako.git
-[submodule "minecraft-nbt"]
-	path = minecraft-nbt
-	url = git@github.com:h0dgep0dge/minecraft-nbt.git
+[submodule "node-nbt"]
+	path = node-nbt
+	url = git@github.com:h0dgep0dge/node-nbt.git
+[submodule "buffer"]
+	path = buffer
+	url = git@github.com:h0dgep0dge/buffer.git

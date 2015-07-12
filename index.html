@@ -3,7 +3,8 @@
   <body>
     <input type="file" id="selector">
     <script src="pako/dist/pako.js"></script>
-    <script src="minecraft-nbt/dist/nbt.js"></script>
+    <script src="node-nbt/dist/nbt.js"></script>
+    <script src="buffer/dist/buffer.js"></script>
     <script>
       function arrayToString(arr) {
         var i, str = '';
@@ -22,7 +23,7 @@
           reader.addEventListener('load',function(result) {
             var r = new Uint8Array(result.target.result);
             var d = pako.ungzip(r);
-            var r = new nbt.NBTReader(d).read();
+            var r = new nbt.NbtReader.readTag(Buffer.Buffer(d));
             console.log(r);
           });
           reader.readAsArrayBuffer(f);
