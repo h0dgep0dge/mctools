@@ -3,7 +3,7 @@
 	url = https://github.com/nodeca/pako.git
 [submodule "node-nbt"]
 	path = node-nbt
-	url = git@github.com:h0dgep0dge/node-nbt.git
+	url = https://github.com/h0dgep0dge/node-nbt.git
 [submodule "buffer"]
 	path = buffer
-	url = git@github.com:h0dgep0dge/buffer.git
+	url = https://github.com/h0dgep0dge/buffer.git

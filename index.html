@@ -15,6 +15,12 @@
         return decodeURIComponent(str);
       }
 
+      function nbt_find(list,name) {
+        for(var i = 0;i < list.length;i++) {
+          if(list[i].name == name) return list[i];
+        }
+      }
+
       var e = document.getElementById('selector');
       e.addEventListener('change',function(e) {
         for(var i = 0;i < e.target.files.length;i++) {
@@ -23,8 +29,20 @@
           reader.addEventListener('load',function(result) {
             var r = new Uint8Array(result.target.result);
             var d = pako.ungzip(r);
-            var r = new nbt.NbtReader.readTag(Buffer.Buffer(d));
-            console.log(r);
+            var r = nbt.NbtReader.readTag(Buffer.Buffer(d));
+
+            var v = r.val[0].val;
+            nbt_find(nbt_find(nbt_find(v,"Player").val,"Inventory").val.list[0].val,"Count").val = 64;
+
+            var o = nbt.NbtWriter.writeTag(r);
+            var c = pako.gzip(o);
+            var b = new Blob([c],{type: 'application/gzip'});
+
+            var a = document.createElement('a');
+            var linkText = document.createTextNode("Download");
+            a.appendChild(linkText);
+            a.href = URL.createObjectURL(b);
+            document.body.appendChild(a);
           });
           reader.readAsArrayBuffer(f);
         }
