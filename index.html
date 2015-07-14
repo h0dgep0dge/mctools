@@ -1,5 +1,14 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <style>
+      img.itembutton {
+        height: 64px;
+        width: 64px;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
   <body>
     <input type="file" id="selector">
     <script src="pako/dist/pako.js"></script>
@@ -32,8 +41,39 @@
             var r = nbt.NbtReader.readTag(Buffer.Buffer(d));
 
             var v = r.val[0].val;
-            nbt_find(nbt_find(nbt_find(v,"Player").val,"Inventory").val.list[0].val,"Count").val = 64;
+            var inventory = nbt_find(nbt_find(v,"Player").val,"Inventory").val;
+            var buttons = [];
 
+            var table = document.createElement('table');
+            for(var row = 3;row >= 0;row--) {
+              buttons[row] = [];
+              var tr = document.createElement('tr');
+              for(var col = 0;col < 9;col++) {
+                var td = document.createElement('td');
+                var button = document.createElement('button');
+                buttons[row][col] = button;
+                var image = document.createElement('img');
+                image.setAttribute('src','items/blank.png');
+                image.setAttribute('class','itembutton');
+                button.appendChild(image);
+                td.appendChild(button);
+                tr.appendChild(td);
+              }
+              table.appendChild(tr);
+            }
+            document.body.appendChild(table);
+            for(var i = 0;i < inventory.list.length;i++) {
+              var item = inventory.list[i].val;
+              var id = nbt_find(item,'id').val;
+              var slot = nbt_find(item,'Slot').val;
+
+              var button = buttons[Math.floor(slot/9)][slot%9];
+              while(button.firstChild) button.removeChild(button.firstChild);
+              var image = document.createElement('img');
+              image.setAttribute('src','items/'+id.split(':')[1]+'.png');
+              image.setAttribute('class','itembutton');
+              button.appendChild(image);
+            }
             var o = nbt.NbtWriter.writeTag(r);
             var c = pako.gzip(o);
             var b = new Blob([c],{type: 'application/gzip'});
