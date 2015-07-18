@@ -2,15 +2,24 @@
 <html>
   <head>
     <style>
-      img.itembutton {
+      img.itemimg {
         height: 64px;
         width: 64px;
         image-rendering: pixelated;
+      }
+
+      button.itembutton {
+        padding: 4px;
+        border-width: 2px;
+        width: 76px;
+        height: 76px;
+        margin: 2px;
       }
     </style>
   </head>
   <body>
     <input type="file" id="selector">
+    <div id='out'></div>
     <script src="pako/dist/pako.js"></script>
     <script src="node-nbt/dist/nbt.js"></script>
     <script src="buffer/dist/buffer.js"></script>
@@ -30,7 +39,58 @@
         }
       }
 
+      function showInventory(items,table,editor) {
+        while(table.firstChild) table.removeChild(table.firstChild);
+        for(var row = 3;row >= 0;row--) {
+          var rowDiv = document.createElement('div');
+          for(var col = 0;col < items[row].length;col++) {
+            var rowSpan = document.createElement('span');
+            var button = document.createElement('button');
+            button.setAttribute('class','itembutton');
+            var img = document.createElement('img');
+            img.setAttribute('src','items/blank.png');
+            img.setAttribute('class','itemimg');
+            if(items[row][col].id != '') {
+              img.setAttribute('src','items/'+items[row][col].id.split(':')[1]+'.png');
+            }
+            button.addEventListener('click',function(col,row) {
+              return function(e) {editItem(items[row][col],editor);};
+            }(col,row));
+            button.appendChild(img);
+            rowSpan.appendChild(button);
+            rowDiv.appendChild(rowSpan);
+          }
+          table.appendChild(rowDiv);
+        }
+      }
+
+      function editItem(item,editor) {
+        while(editor.firstChild) editor.removeChild(editor.firstChild);
+        var inputs = {};
+        for(var p in item) {
+          var text = document.createTextNode(p + ' ');
+          var input = document.createElement('input');
+          input.setAttribute('type','text');
+          input.setAttribute('value',item[p]);
+          inputs[p] = input;
+          var br = document.createElement('br');
+          editor.appendChild(text);
+          editor.appendChild(input);
+          editor.appendChild(br);
+        }
+        var apply = document.createElement('input');
+        apply.setAttribute('type','button');
+        apply.setAttribute('value','Apply');
+        apply.addEventListener('click',function(e) {
+          for(var p in item) {
+            item[p] = inputs[p].value;
+          }
+        });
+        editor.appendChild(apply);
+      }
+
       var e = document.getElementById('selector');
+      var out = document.getElementById('out');
       e.addEventListener('change',function(e) {
         for(var i = 0;i < e.target.files.length;i++) {
           var f = e.target.files.item(i);
@@ -42,39 +102,38 @@
 
             var v = r.val[0].val;
             var inventory = nbt_find(nbt_find(v,"Player").val,"Inventory").val;
-            var buttons = [];
+            var items = [];
 
-            var table = document.createElement('table');
-            for(var row = 3;row >= 0;row--) {
-              buttons[row] = [];
-              var tr = document.createElement('tr');
-              for(var col = 0;col < 9;col++) {
-                var td = document.createElement('td');
-                var button = document.createElement('button');
-                buttons[row][col] = button;
-                var image = document.createElement('img');
-                image.setAttribute('src','items/blank.png');
-                image.setAttribute('class','itembutton');
-                button.appendChild(image);
-                td.appendChild(button);
-                tr.appendChild(td);
-              }
-              table.appendChild(tr);
+            for(var row = 0;row < 4;row++) {
+              items[row] = [];
+              for(var col = 0;col < 9;col++)
+                items[row][col] = {id:'',damage:0,count:0};
             }
-            document.body.appendChild(table);
+
             for(var i = 0;i < inventory.list.length;i++) {
-              var item = inventory.list[i].val;
-              var id = nbt_find(item,'id').val;
-              var slot = nbt_find(item,'Slot').val;
-
-              var button = buttons[Math.floor(slot/9)][slot%9];
-              while(button.firstChild) button.removeChild(button.firstChild);
-              var image = document.createElement('img');
-              image.setAttribute('src','items/'+id.split(':')[1]+'.png');
-              image.setAttribute('class','itembutton');
-              button.appendChild(image);
+              var id = nbt_find(inventory.list[i].val,'id').val;
+              var damage = nbt_find(inventory.list[i].val,'Damage').val;
+              var count = nbt_find(inventory.list[i].val,'Count').val;
+              var slot = nbt_find(inventory.list[i].val,'Slot').val;
+              items[Math.floor(slot/9)][slot%9] = {id:id,damage:damage,count:count};
             }
-            var o = nbt.NbtWriter.writeTag(r);
+
+            var table = document.createElement('div');
+            var editor = document.createElement('div');
+            var save = document.createElement('div');
+
+            var saveButton = document.createElement('input');
+            saveButton.setAttribute('type','button');
+            saveButton.setAttribute('value','Save');
+            saveButton.addEventListener('click',function(e) {console.log(items);});
+            save.appendChild(saveButton);
+
+            out.appendChild(table);
+            out.appendChild(editor);
+            out.appendChild(save);
+
+            showInventory(items,table,editor);
+            /*var o = nbt.NbtWriter.writeTag(r);
             var c = pako.gzip(o);
             var b = new Blob([c],{type: 'application/gzip'});
 
@@ -82,7 +141,7 @@
             var linkText = document.createTextNode("Download");
             a.appendChild(linkText);
             a.href = URL.createObjectURL(b);
-            document.body.appendChild(a);
+            document.body.appendChild(a);*/
           });
           reader.readAsArrayBuffer(f);
         }
