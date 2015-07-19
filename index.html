@@ -54,7 +54,11 @@
               img.setAttribute('src','items/'+items[row][col].id.split(':')[1]+'.png');
             }
             button.addEventListener('click',function(col,row) {
-              return function(e) {editItem(items[row][col],editor);};
+              return function(e) {
+                editItem(items[row][col],editor,function() {
+                  showInventory(items,table,editor);
+                });
+              };
             }(col,row));
             button.appendChild(img);
             rowSpan.appendChild(button);
@@ -64,7 +68,7 @@
         }
       }
 
-      function editItem(item,editor) {
+      function editItem(item,editor,redraw) {
         while(editor.firstChild) editor.removeChild(editor.firstChild);
         var inputs = {};
         for(var p in item) {
@@ -85,8 +89,22 @@
           for(var p in item) {
             item[p] = inputs[p].value;
           }
+          redraw();
         });
         editor.appendChild(apply);
+      }
+
+      function buildItem(id,damage,count,slot) {
+        return {
+          name:undefined,
+          type:10,
+          val:[
+            {name:'id',type:8,val:id},
+            {name:'Damage',type:2,val:damage},
+            {name:'Count',type:1,val:count},
+            {name:'Slot',type:1,val:slot}
+          ]
+        };
       }
 
       var e = document.getElementById('selector');
@@ -121,11 +139,27 @@
             var table = document.createElement('div');
             var editor = document.createElement('div');
             var save = document.createElement('div');
-
             var saveButton = document.createElement('input');
             saveButton.setAttribute('type','button');
             saveButton.setAttribute('value','Save');
-            saveButton.addEventListener('click',function(e) {console.log(items);});
+
+            saveButton.addEventListener('click',function(e) {
+              inventory.list = [];
+              var ind = 0;
+              for(var row = 0;row < items.length;row++)
+                for(var col = 0;col < items[row].length;col++)
+                  if(items[row][col].id != '')
+                    inventory.list[ind++] = buildItem(items[row][col].id,items[row][col].damage,items[row][col].count,row*9+col);
+              var o = nbt.NbtWriter.writeTag(r);
+              var c = pako.gzip(o);
+              var b = new Blob([c],{type: 'application/gzip'});
+
+              var a = document.createElement('a');
+              var linkText = document.createTextNode("Download");
+              a.appendChild(linkText);
+              a.href = URL.createObjectURL(b);
+              document.body.appendChild(a);
+            });
             save.appendChild(saveButton);
 
             out.appendChild(table);
@@ -133,15 +167,6 @@
             out.appendChild(save);
 
             showInventory(items,table,editor);
-            /*var o = nbt.NbtWriter.writeTag(r);
-            var c = pako.gzip(o);
-            var b = new Blob([c],{type: 'application/gzip'});
-
-            var a = document.createElement('a');
-            var linkText = document.createTextNode("Download");
-            a.appendChild(linkText);
-            a.href = URL.createObjectURL(b);
-            document.body.appendChild(a);*/
           });
           reader.readAsArrayBuffer(f);
         }
